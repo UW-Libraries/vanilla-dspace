@@ -1,0 +1,5 @@
+---
+# change all these if you are acutally building production.
+db_name: dspacedb
+db_user: dspaceuser
+db_pwd: thisthingbetterwork

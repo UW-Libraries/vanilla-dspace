@@ -1,0 +1,75 @@
+---
+  - name: install git
+    yum: pkg=git state=present
+
+  #- name: ensure that dspace_src is empty
+  #  file: path={{ dspace_src }}
+  #        state=absent
+
+  #- name: create dspace_src dir
+  #  file: 
+  #    path: '{{ dspace_src }}'
+  #    state: directory
+
+  #- name: clone dspace app 
+  #  git: repo={{ dspace_gitrepo }}
+  #       dest={{ dspace_src }}
+  #       force=yes
+  #       version={{ dspace_gitbranch }}
+
+  - name: Unarchive dspace app
+    tags:
+      - getapp
+    unarchive:
+      src: 'https://github.com/DSpace/DSpace/releases/download/dspace-{{ dspace_version }}/dspace-{{ dspace_version }}-src-release.tar.gz'
+      dest: /tmp
+      remote_src: yes
+
+  - name: Copy local.cfg
+    template: src=local.cfg.j2 dest={{ dspace_src }}/dspace/config/local.cfg
+
+  - name: change dspace_src owner
+    file:
+      path: '{{ dspace_src }}'
+      owner: '{{ dspace_user }}'
+      group: '{{ dspace_group }}'
+      recurse: yes
+
+  #- name: ensure that dspace application dir is empty
+  #  file: path={{ application_home }}
+  #        state=absent
+
+  - name: create dspace application directory
+    tags:
+      - perms
+    file:
+      path: '{{ application_home }}'
+      owner: '{{ dspace_user }}'
+      group: '{{ dspace_group }}'
+      mode: 0755
+      state: directory
+
+  - name: Build installation package
+    become_user: tomcat
+    command: "mvn package chdir={{ dspace_src }}"
+    #creates: "{{ dspace_src }}/dspace/target/dspace-installer"
+
+  - name: Install DSpace
+    become_user: tomcat
+    command: "ant fresh_install chdir={{ dspace_src }}/dspace/target/dspace-installer"
+
+  - name: symlink webapps to tomcat
+    tags:
+      - webapps
+    become_user: tomcat
+    file:
+      src: '{{ application_home }}/webapps/{{ item.src }}'
+      dest: '/var/lib/tomcat/webapps/{{ item.dest }}'
+      state: link
+    with_items:
+      - { src: 'jspui', dest: 'jspui' }
+      - { src: 'solr', dest: 'solr' }
+      - { src: 'oai', dest: 'oai' }
+      - { src: 'rdf', dest: 'rdf' }
+      - { src: 'rest', dest: 'rest' }
+      - { src: 'xmlui', dest: 'xmlui' }

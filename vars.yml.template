@@ -1,0 +1,8 @@
+application_home: /var/dspace
+dspace_version: 6.2
+dspace_src: '/tmp/dspace-{{ dspace_version }}-src-release'
+dspace_gitrepo: 'https://github.com/DSpace/DSpace.git'
+dspace_gitbranch: 'dspace-6.2'
+dspace_user: tomcat
+dspace_group: tomcat
+ansible_target: localhost

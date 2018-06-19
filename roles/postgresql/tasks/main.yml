@@ -1,0 +1,47 @@
+---
+  - name: Install pgdg repository
+    yum: pkg={{ item }} state=present
+    with_items:
+      - "https://download.postgresql.org/pub/repos/yum/9.4/redhat/rhel-6.9-x86_64/pgdg-centos94-9.4-3.noarch.rpm"
+      - "python-psycopg2"
+
+  - name: Install PostgreSQL Database Server group
+    yum:
+      name: "@PostgreSQL Database Server 9.4 PGDG"
+      state: present
+
+  - name: initdb
+    action: shell creates=/var/lib/pgsql/9.4/data/postgresql.conf /usr/pgsql-9.4/bin/postgresql94-setup initdb
+
+  - name: start postgresql service
+    service: name=postgresql-9.4 state=started enabled=true
+
+  - name: Create postgres db user
+    become_user: postgres
+    postgresql_user:
+      name: "{{ db_user }}"
+      password: "{{ db_pwd }}"
+
+  - name: Create dspace db
+    become_user: postgres
+    postgresql_db: 
+      name: "{{ db_name }}"
+      owner: "{{ db_user }}"
+
+  - name: Add pgcrypto extension to dspace db
+    become_user: postgres
+    postgresql_ext:
+      name: "pgcrypto"
+      db: "{{ db_name }}"
+# select * from pg_available_extensions;"
+
+  - name: Check that user does not have unnecessary privilege
+    become_user: postgres
+    postgresql_user: name={{ db_user }} role_attr_flags=NOSUPERUSER,NOCREATEDB
+
+  - name: replace pg_hba.conf
+    template: src=pg_hba.conf.j2 dest=/var/lib/pgsql/9.4/data/pg_hba.conf
+    notify: restart postgresql-9.4
+
+  - name: restart postgresql
+    service: name=postgresql-9.4 state=restarted

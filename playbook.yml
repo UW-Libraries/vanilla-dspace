@@ -1,0 +1,13 @@
+---
+- name: Build a fullstack instance of fedora/samvera/hyrax
+  hosts: "{{ ansible_target }}"
+  #hosts: localhost
+  vars_files:
+    - vars.yml
+    - private.yml
+  
+  roles:
+    - { role: base, become: true }
+    - { role: postgresql, become: true, tags: ['postgres'] }
+    - { role: tomcat, become: true, tags: ['tomcat'] }
+    - { role: dspace, become: true, tags: ['dspace'] }

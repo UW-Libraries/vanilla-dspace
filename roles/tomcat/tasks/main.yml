@@ -1,0 +1,19 @@
+---
+  - name: install tomcat
+    yum: name={{ item }} state=present
+    with_items:
+      - tomcat
+      - tomcat-webapps
+      - tomcat-admin-webapps
+
+  - name: Replace server.xml
+    template: src=server.xml.j2 dest=/etc/tomcat/server.xml
+
+  - name: Replace web.xml
+    template: src=web.xml.j2 dest=/etc/tomcat/web.xml
+
+  - name: Replace context.xml
+    template: src=context.xml.j2 dest=/etc/tomcat/context.xml
+
+  - name: restart tomcat
+    service: name=tomcat state=restarted
