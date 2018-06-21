@@ -41,7 +41,7 @@
 
   - name: replace pg_hba.conf
     template: src=pg_hba.conf.j2 dest=/var/lib/pgsql/9.4/data/pg_hba.conf
-    notify: restart postgresql
+    #notify: restart postgresql
 
   - name: restart postgresql
     tags: blah
