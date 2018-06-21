@@ -5,7 +5,11 @@
   vars_files:
     - vars.yml
     - private.yml
-  
+
+  handlers:
+    - name: restart postgresql
+      service: name=postgresql-9.4 state=restarted 
+ 
   roles:
     - { role: base, become: true }
     - { role: postgresql, become: true, tags: ['postgres'] }
